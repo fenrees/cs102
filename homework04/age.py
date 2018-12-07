@@ -17,8 +17,10 @@ def age_predict(user_id: int) -> Optional[float]:
     assert isinstance(user_id, int), "user_id must be positive integer"
     assert user_id > 0, "user_id must be positive integer"
 
-    friends = [User(**i) for i in get_friends(user_id, 'bdate')] #перебираем друзей создаем список дат
-        current_date = datetime.date(datetime.now()) # сегодняшняя дата питон шарит
+    # перебираем друзей создаем список дат
+    friends = [User(**i) for i in get_friends(user_id, 'bdate')]
+        # сегодняшняя дата питон поймет
+        current_date = datetime.date(datetime.now())
         #создаем список возрастов приятелей(каркас)
         age_list = []
         for person in friends:
@@ -31,8 +33,8 @@ def age_predict(user_id: int) -> Optional[float]:
             except (ValueError, TypeError):
                 pass
             else:
-               #считает возраст пользователя считая данный год - год рождения вычитая данный месяц и день если это гавно меньше даты рождения
+               #считает возраст пользователя считая данный год - год рождения вычитая данный месяц и день если они меньше даты рождения
                 age = current_date.year - bd.year - ((current_date.month, current_date.day) < (bd.month, bd.day))
                 age_list.append(age)
         if age_list:
-    return float(median(age_list))
+        return float(median(age_list))
