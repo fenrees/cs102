@@ -19,7 +19,7 @@ def age_predict(user_id: int) -> Optional[float]:
 
     # перебираем друзей создаем список дат
     friends = [User(**i) for i in get_friends(user_id, 'bdate')]
-        # сегодняшняя дата питон поймет
+        # сегодняшняя дата
         current_date = datetime.date(datetime.now())
         #создаем список возрастов приятелей(каркас)
         age_list = []
@@ -29,7 +29,7 @@ def age_predict(user_id: int) -> Optional[float]:
             try:
                 # прогоняем у пользователя дату месяц и число рождения
                 bd = datetime.strptime(bday, "%d.%m.%Y")
-            #если нет то юзер идет лесом
+            #если нет то юзер проходит мимо
             except (ValueError, TypeError):
                 pass
             else:
