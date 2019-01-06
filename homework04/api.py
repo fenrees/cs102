@@ -1,7 +1,9 @@
 import requests
 import time
 
-import config
+from config import VK_CONFIG as vk
+from typing import Union, List, Optional
+from api_models import User, Message
 
 
 
