@@ -1,47 +1,49 @@
 from collections import Counter
-import datetime
+from datetime import datetime
 import plotly
+import plotly.plotly as py
+import plotly.graph_objs as go
 from typing import List, Tuple
+from api import messages_get_history
 from api_models import Message
 import config
 
-
-Dates = List[datetime.date]
-Frequencies = List[int]
-
-
 plotly.tools.set_credentials_file(
-    username=config.PLOTLY_CONFIG['username'],
-    api_key=config.PLOTLY_CONFIG['api_key']
+    username=config.PLOTLY_CONFIG,
+    api_key=config.PLOTLY_CONFIG
 )
 
 
-def fromtimestamp(ts: int) -> datetime.date:
-    return datetime.datetime.fromtimestamp(ts).date()
+def from_time_stamp(ts: int) -> datetime.date:
+    return datetime.fromtimestamp(ts).date()
 
 
-def count_dates_from_messages(messages: List[Message]) -> Tuple[Dates, Frequencies]:
+def count_dates_from_messages(messages: List[Message]) -> Tuple[List[datetime.date], List[int]]:
     """ Получить список дат и их частот
-
     :param messages: список сообщений
     """
-    # считает количество повторяющихся дат сообщений 1.09 1.10 1.11 и тд
-    c = Counter()
+    dates = []
+    cnt = Counter()
     for message in messages:
-        date = fromtimestamp(message.date)
-        c[date] += 1
-    # * выводит перменные по отдельности из списка
-    # zip возвращает кортеж на каждой интерации, на выходе список  потому что list но так кортеж будет (интератор - класс, генерирующий последовательность значений)
-    # будет ([дата, кол-во сообщений в эту дату с этим челом])
-    result = list(zip(*c.most_common()))
-    return tuple((sorted(result[0]), [c[date] for date in sorted(result[0])]))
+        message['date'] = datetime.utcfromtimestamp(message['date']).strftime("%Y-%m-%d")
+        dates.append(message['date'])
+    for val in dates:
+        cnt[val] += 1
+    return list(cnt.keys()), list(cnt.values())
 
 
-def plotly_messages_freq(dates: Dates, freq: Frequencies) -> None:
+def plotly_messages_freq(dates: List[datetime.date], freq: List[int]) -> None:
     """ Построение графика с помощью Plot.ly
-
-    :param date: список дат
+    :param dates:
+    :param dates: список дат
     :param freq: число сообщений в соответствующую дату
     """
-    data = [plotly.graph_objs.Scatter(x=dates, y=freq)]
-    plotly.plotly.plot(data)
+    data = [go.Scatter(x=dates, y=freq)]
+    py.plot(data)
+
+
+if __name__ == '__main__':
+    friend_id = int(config.VK_CONFIG['friend_id'])
+    messages = messages_get_history(friend_id, offset=0, count=200)
+    x, y = count_dates_from_messages(messages)
+    plotly_messages_freq(x, y)
