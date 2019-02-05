@@ -1,9 +1,8 @@
-import datetime as datetime
+import datetime
 from statistics import median
 from typing import Optional
-
 from api import get_friends
-from api_models import User
+import config
 
 
 def age_predict(user_id: int) -> Optional[float]:
@@ -17,24 +16,30 @@ def age_predict(user_id: int) -> Optional[float]:
     assert isinstance(user_id, int), "user_id must be positive integer"
     assert user_id > 0, "user_id must be positive integer"
 
-    # перебираем друзей создаем список дат
-    friends = [User(**i) for i in get_friends(user_id, 'bdate')]
-        # сегодняшняя дата
-        current_date = datetime.date(datetime.now())
-        #создаем список возрастов приятелей(каркас)
-        age_list = []
-        for person in friends:
-            # др друга перменная
-            bday = person.bdate
-            try:
-                # прогоняем у пользователя дату месяц и число рождения
-                bd = datetime.strptime(bday, "%d.%m.%Y")
-            #если нет то юзер проходит мимо
-            except (ValueError, TypeError):
-                pass
-            else:
-               #считает возраст пользователя считая данный год - год рождения вычитая данный месяц и день если они меньше даты рождения
-                age = current_date.year - bd.year - ((current_date.month, current_date.day) < (bd.month, bd.day))
-                age_list.append(age)
-        if age_list:
-        return float(median(age_list))
+    dates = []
+    ages = []
+    data = get_friends(user_id, 'bdate')
+    for i in data:
+        if i.get('bdate'):
+            dates.append(i['bdate'])
+    y_dates = []
+    for elem in dates:
+        if len(elem) in range(8, 11):
+            y_dates.append(elem)
+    dates = y_dates
+
+    for elem in dates:
+        a = list(map(int, elem.split('.')))
+        data = datetime.date(a[2], a[1], a[0])
+        age = (datetime.date.today() - data) / 365.25
+        ages.append(age.days)
+
+    if len(ages) > 0:
+        return median(ages)
+    else:
+        return None
+
+
+if __name__ == '__main__':
+    user_id = int(config.VK_CONFIG['user_id'])
+    print('Age:', int(age_predict(user_id)))
